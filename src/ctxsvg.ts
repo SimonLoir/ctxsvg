@@ -14,11 +14,11 @@ export default class context {
     }
 
     public beginPath() {
-        //this.options = {};
         let p: SVGPathElement = this.svg.appendChild(
             document.createElementNS('http://www.w3.org/2000/svg', 'path')
         );
         this.path = new Path(p);
+        return this.path;
     }
 
     public moveTo(x: number, y: number) {
@@ -42,13 +42,39 @@ export default class context {
     }
 
     public fillRect(x: number, y: number, width: number, height: number) {
-        this.beginPath();
+        let rect = this.xrect(x, y, width, height);
+        rect.setAttribute('fill', this.options.fill || 'black');
+    }
+
+    private xrect(x: number, y: number, width: number, height: number) {
+        let rect: SVGRectElement = this.svg.appendChild(
+            document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+        );
+        rect.setAttribute('x', x.toString());
+        rect.setAttribute('y', y.toString());
+        rect.setAttribute('width', width.toString());
+        rect.setAttribute('height', height.toString());
+        //rect.setAttribute('stroke', this.options.stroke || 'none'); //not needed
+        return rect;
+    }
+
+    public rect(x: number, y: number, width: number, height: number) {
         this.moveTo(x, y);
         this.lineTo(x + width, y);
         this.lineTo(x + width, y + height);
         this.lineTo(x, y + height);
         this.closePath();
-        this.fill();
+    }
+
+    public bezierCurveTo(
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number,
+        x: number,
+        y: number
+    ) {
+        this.path.path += `C${x1},${y1} ${x2},${y2} ${x},${y}`;
     }
 
     public set strokeStyle(style: string) {
