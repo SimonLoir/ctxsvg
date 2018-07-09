@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>SDraw</title>
+</head>
+
+<body>
+    <svg height="800" width="800">
+        <g stroke="green" fill="lime" stroke-width="5">
+            <circle cx="25" cy="25" r="15" />
+            <circle cx="40" cy="25" r="15" />
+            <circle cx="55" cy="25" r="15" />
+            <circle cx="0" cy="0" r="15" />
+            <circle cx="400" cy="400" r="15" />
+        </g>
+    </svg>
+    <script src="app.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        canvas,
+        svg {
+            /*border: 1px solid black;*/
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.15);
+            border-radius: 5px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</body>
+
+</html>

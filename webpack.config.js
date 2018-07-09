@@ -7,10 +7,26 @@ console.log(process.argv);
 if (process.argv.indexOf('-p') >= 0) filename = '[name].min.js';
 else filename = '[name].js';
 
+if (process.argv.indexOf('-app') >= 0)
+    (output = {
+        filename: filename,
+        path: path.resolve(__dirname, 'app')
+    }),
+        (entry = {
+            app: './src/app.ts'
+        });
+else
+    (output = {
+        filename: filename,
+        path: path.resolve(__dirname, 'lib'),
+        library: 'ctxsvg',
+        libraryTarget: 'umd',
+        umdNamedDefine: true
+    }),
+        (entry = { ctxsvg: './src/index.ts' });
+
 module.exports = {
-    entry: {
-        ctxsvg: './src/index.ts'
-    },
+    entry: entry,
 
     module: {
         rules: [
@@ -44,13 +60,7 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js']
     },
 
-    output: {
-        filename: filename,
-        path: path.resolve(__dirname, 'lib'),
-        library: 'ctxsvg',
-        libraryTarget: 'umd',
-        umdNamedDefine: true
-    },
+    output: output,
 
     watch: true
 };

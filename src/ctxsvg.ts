@@ -74,7 +74,31 @@ export default class context {
         x: number,
         y: number
     ) {
-        this.path.path += `C${x1},${y1} ${x2},${y2} ${x},${y}`;
+        this.bezierCurve(x1, y1, x2, y2, x, y, false);
+    }
+
+    public relativeBezierCurveTo(
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number,
+        x: number,
+        y: number
+    ) {
+        this.bezierCurve(x1, y1, x2, y2, x, y, true);
+    }
+    private bezierCurve(
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number,
+        x: number,
+        y: number,
+        relative: boolean
+    ) {
+        this.path.path += `${
+            relative == true ? 'c' : 'C'
+        }${x1},${y1} ${x2},${y2} ${x},${y}`;
     }
 
     public set strokeStyle(style: string) {

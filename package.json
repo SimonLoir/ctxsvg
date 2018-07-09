@@ -5,12 +5,14 @@
     "main": "index.js",
     "scripts": {
         "build": "webpack -p",
+        "app": "webpack -p -app",
         "dev": "webpack -d"
     },
     "author": "Simon Loir",
     "license": "MIT",
     "dependencies": {
         "css-loader": "^0.28.11",
+        "fast-diff": "^1.1.2",
         "node-sass": "^4.9.0",
         "sass-loader": "^7.0.3",
         "style-loader": "^0.21.0",
