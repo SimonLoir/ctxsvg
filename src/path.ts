@@ -31,6 +31,7 @@ export class Path {
         let p = this.cutPath(path);
         let diffs: Array<number> = [];
         let vals: Array<number> = [];
+        let end_vals: Array<number> = [];
         let count = 0;
         if (p.length != old.length) throw diff_error;
 
@@ -60,6 +61,7 @@ export class Path {
                             } else {
                                 diffs.push(parseFloat(nnn) - parseFloat(ooo));
                                 vals.push(parseFloat(ooo));
+                                end_vals.push(parseFloat(nnn));
                                 xpath += `{$${diffs.length - 1}}`;
                             }
                             if (i3 != nn_spl.length - 1) xpath += ',';
@@ -70,26 +72,29 @@ export class Path {
             }
         }
 
-        let per_milli_second = diffs.map((e: number) => e / time);
+        let xval = 1000 / 60;
+        let per_milli_second = diffs.map((e: number) => (xval * e) / time);
         let last: number = null;
         let start: number = null;
         const update = (timestamp: number) => {
+            console.log(timestamp);
             if (last == null) last = timestamp + 0;
             if (start == null) start = timestamp + 0;
-            let x = timestamp - last;
-            //console.log(timestamp - last);
             let xxpath = xpath;
             for (let i = 0; i < vals.length; i++) {
-                vals[i] += per_milli_second[i] * (x == 0 ? 17 : x);
+                vals[i] += per_milli_second[i];
                 xxpath = xxpath.replace(`{$${i}}`, vals[i].toString());
             }
-            console.log(vals);
-            if (timestamp - start < time) requestAnimationFrame(update);
+            console.log(time, timestamp);
+            if (timestamp < time) requestAnimationFrame(update);
             this.node.setAttribute('d', xxpath);
-            last = timestamp;
         };
 
+        console.log('Logs : ');
+
         console.log(diffs);
+        console.log(vals);
+        console.log(end_vals);
         console.log(old);
         console.log(p);
         console.log(per_milli_second);
