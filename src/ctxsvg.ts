@@ -29,6 +29,10 @@ export default class context {
         this.path.path += `L${x} ${y} `;
     }
 
+    public relativeLineTo(x: number, y: number) {
+        this.path.path += `l${x} ${y} `;
+    }
+
     public stroke() {
         this.path.stroke(this.options);
     }
@@ -109,7 +113,7 @@ export default class context {
         this.options.strokeWidth = style.toString();
     }
 
-    public set fillStyle(style: number) {
+    public set fillStyle(style: string) {
         this.options.fill = style.toString();
     }
 }

@@ -24,7 +24,7 @@ export class Path {
         this.node.setAttribute('fill', opts.fill || 'black');
     }
 
-    public animateTo(path: string, time = 2500) {
+    public animateTo(path: string, duration = 2500, then?: () => void) {
         let diff_error = 'Error, pathes are too different';
         let xpath = '';
         let old = this.cutPath(this.node.getAttribute('d'));
@@ -35,72 +35,90 @@ export class Path {
         let count = 0;
         if (p.length != old.length) throw diff_error;
 
-        for (let i = 0; i < p.length; i++) {
-            const n = p[i];
-            const o = old[i];
-            if (n == o) {
-                xpath += n;
+        for (let i = 0; i < old.length; i++) {
+            const xold = old[i];
+            const xnew = p[i];
+            //console.log(xold, xnew);
+            if (xold == xnew) {
+                xpath += xold;
             } else {
-                let n_spl = n.split(' ');
-                let o_spl = o.split(' ');
-                if (n_spl.length != o_spl.length) throw diff_error;
-                for (let i2 = 0; i2 < n_spl.length; i2++) {
-                    const nn = n_spl[i2];
-                    const oo = o_spl[i2];
-                    if (nn == oo) {
-                        xpath += nn;
-                    } else {
-                        let nn_spl = n.split(',');
-                        let oo_spl = o.split(',');
-                        if (nn_spl.length != oo_spl.length) throw diff_error;
-                        for (let i3 = 0; i3 < nn_spl.length; i3++) {
-                            const nnn = nn_spl[i3];
-                            const ooo = oo_spl[i3];
-                            if (nnn == ooo) {
-                                xpath += nnn;
-                            } else {
-                                diffs.push(parseFloat(nnn) - parseFloat(ooo));
-                                vals.push(parseFloat(ooo));
-                                end_vals.push(parseFloat(nnn));
-                                xpath += `{$${diffs.length - 1}}`;
-                            }
-                            if (i3 != nn_spl.length - 1) xpath += ',';
+                // We first split into small pieces (using spaces)
+                const new_space_spl = xnew.split(' ');
+                const old_space_spl = xold.split(' ');
+                //console.table({ new_space_spl, old_space_spl });
+
+                if (new_space_spl.length != old_space_spl.length)
+                    throw diff_error;
+                for (
+                    let i_spaces = 0;
+                    i_spaces < new_space_spl.length;
+                    i_spaces++
+                ) {
+                    // Then we split into commas
+                    const new_comma_spl = new_space_spl[i_spaces].split(',');
+                    const old_comma_spl = old_space_spl[i_spaces].split(',');
+                    if (new_comma_spl.length != old_comma_spl.length)
+                        throw diff_error;
+                    for (
+                        let i_commas = 0;
+                        i_commas < new_comma_spl.length;
+                        i_commas++
+                    ) {
+                        let ncomma: any = new_comma_spl[i_commas];
+                        let ocomma: any = old_comma_spl[i_commas];
+                        //console.table({ ncomma, ocomma });
+                        if (ncomma == ocomma) {
+                            xpath += ncomma;
+                        } else {
+                            ncomma = parseFloat(ncomma);
+                            ocomma = parseFloat(ocomma);
+                            diffs.push(ncomma - ocomma);
+                            vals.push(ocomma);
+                            end_vals.push(ncomma);
+                            xpath += `{${diffs.length - 1}}`;
                         }
+                        if (i_commas != new_comma_spl.length - 1) xpath += ',';
                     }
-                    if (i2 != n_spl.length - 1) xpath += ' ';
+                    if (i_spaces != new_space_spl.length - 1) xpath += ' ';
                 }
             }
         }
 
-        let xval = 1000 / 60;
-        let per_milli_second = diffs.map((e: number) => (xval * e) / time);
-        let last: number = null;
-        let start: number = null;
-        const update = (timestamp: number) => {
-            console.log(timestamp);
-            if (last == null) last = timestamp + 0;
-            if (start == null) start = timestamp + 0;
-            let xxpath = xpath;
-            for (let i = 0; i < vals.length; i++) {
-                vals[i] += per_milli_second[i];
-                xxpath = xxpath.replace(`{$${i}}`, vals[i].toString());
-            }
-            console.log(time, timestamp);
-            if (timestamp < time) requestAnimationFrame(update);
-            this.node.setAttribute('d', xxpath);
-        };
-
-        console.log('Logs : ');
-
-        console.log(diffs);
-        console.log(vals);
-        console.log(end_vals);
-        console.log(old);
-        console.log(p);
-        console.log(per_milli_second);
+        console.table({
+            base: this.node.getAttribute('d'),
+            path,
+            xpath,
+            old,
+            p,
+            diffs,
+            vals,
+            end_vals,
+            count
+        });
         console.log(xpath);
 
-        requestAnimationFrame(update);
+        let startTime: number = null;
+
+        const animate = (time: number) => {
+            if (startTime === null) startTime = time;
+            let p = xpath;
+            let elapsed = time - startTime;
+            for (let i = 0; i < diffs.length; i++) {
+                const diff = diffs[i];
+                const startPos = vals[i];
+                let ease = easeInOut(elapsed, startPos, diff, duration);
+                p = p.replace(`{${i}}`, ease.toString());
+            }
+            this.node.setAttribute('d', p);
+
+            if (elapsed < duration) requestAnimationFrame(animate);
+            else {
+                this.node.setAttribute('d', path);
+                console.timeEnd('e');
+            }
+        };
+        console.time('e');
+        animate(startTime);
     }
 
     get get() {
@@ -124,4 +142,35 @@ export class Path {
         if (buffer != '') parts.push(buffer);
         return parts;
     }
+}
+
+/**
+ * function easeInOut(t: number, b: number, c: number, d: number): number {
+    t /= d;
+    t--;
+    return c * (t * t * t + 1) + b;
+}
+let duration = 750;
+        let pos = target.offsetTop;
+        let startPos = target.offsetParent.scrollTop;
+        let d = pos - startPos;
+        let startTime: number = null;
+
+        const animate = (time: number) => {
+            if (startTime === null) startTime = time;
+            let elapsed = time - startTime;
+            let ease = easeInOut(elapsed, startPos, d, duration);
+            target.offsetParent.scrollTop = ease;
+            if (elapsed < duration) requestAnimationFrame(animate);
+            else {
+                window.location.hash = this.getAttribute('href');
+            }
+        };
+
+        animate(startTime);
+ */
+function easeInOut(t: number, b: number, c: number, d: number): number {
+    t /= d;
+    t--;
+    return c * (t * t * t + 1) + b;
 }
